@@ -1,0 +1,128 @@
+---
+title: "DATASCI 306, Homework 10b, Winter 2026"
+author: "James Souilliere"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Background: Six Degrees of Kevin Bacon
+
+The "Six Degrees of Kevin Bacon" is a parlor game based on the idea that any
+actor in Hollywood can be connected to Kevin Bacon through a chain of shared
+movie appearances in at most six steps. For example, if Actor A appeared in a
+movie with Actor B, and Actor B appeared in a movie with Kevin Bacon, then Actor
+A has a "Bacon number" of 2.
+
+In this homework, you will build an interactive Shiny app that implements this
+game using the same `movie_actors.csv` dataset from Homework 10a.
+
+### Data
+
+```{r}
+movie_actors <- read_csv("movie_actors.csv")
+glimpse(movie_actors)
+```
+
+---
+
+
+\newpage
+
+## Question 1 (10 points): Six Degrees of Kevin Bacon App
+
+In this question you will complete an interactive version of the Six Degrees of
+Kevin Bacon game as a Shiny app. The player navigates from a starting actor
+toward Kevin Bacon by choosing movies and co-stars, one step at a time.
+
+A starter file `bacon_app.R` is provided with the UI, data loading, and helper
+functions already written. **Your job is to fill in the server logic** --- the
+sections marked `# TODO` in the file. Do not modify the UI or the helper
+functions.
+
+### Game Flow
+
+1. **Start:** The user clicks "New Game". The app picks 5 random actors and
+   displays them as radio button choices.
+2. **Pick an actor:** The user selects an actor and clicks "Select". The app
+   shows that actor's movies as the new choices.
+3. **Pick a movie:** The user selects a movie and clicks "Select". The app shows
+   the cast of that movie (excluding already-visited actors) as choices.
+4. **Repeat** steps 2--3 until Kevin Bacon is selected (win!) or the player has
+   picked 6 actors without finding him (lose).
+
+### What to complete
+
+Open `bacon_app.R` and find the four `# TODO` blocks inside the `server`
+function. Read the comments above each block carefully --- they describe exactly
+what that section should do. Here is a summary:
+
+1. **TODO 1 --- `observeEvent(input$new_game, ...)`:** Reset the game state and
+   sample 5 random starting actors, weighted by number of movies (pass
+   `prob = actor_weights` to `sample()` so recognizable actors appear more
+   often). Use `updateRadioButtons()` to set the choices for the `"selection"`
+   input.
+
+2. **TODO 2 --- `observeEvent(input$choose, ...)`:** This is the main game logic.
+   When the user clicks "Select":
+   - If in the `"actor"` phase: record the chosen actor in the path and visited
+     list, increment the step count, check for win/loss, then look up the
+     actor's movies (filtering out any already in `game$visited_movies` with
+     `setdiff()`) and switch to the `"movie"` phase. The provided `get_movies()`
+     helper returns movies sorted by release year, so options appear
+     chronologically.
+   - If in the `"movie"` phase: record the chosen movie in the path **and in
+     `game$visited_movies`**, look up the cast (excluding visited actors, but
+     always including Kevin Bacon if present), and switch back to the
+     `"actor"` phase.
+
+3. **TODO 3 --- `output$path_display`:** Use `renderUI` to display the path taken
+   so far. The `game$path` vector alternates between actor names and movie
+   titles. Display actors in **bold** and movies in *italics*, separated by
+   arrows.
+
+4. **TODO 4 --- `output$result_message`:** Use `renderText` to show a win message
+   (with Bacon number), a loss message, or nothing depending on the game state.
+
+### Provided helpers
+
+These are already defined in the starter file --- use them in your TODOs:
+
+- `get_movies(actor_name)` --- returns a character vector of movies for an
+  actor, sorted by release year (ascending)
+- `get_cast(movie_name)` --- returns a character vector of actors in a movie
+- `non_bacon_actors` --- character vector of all actors except Kevin Bacon
+- `actor_weights` --- named numeric vector of movie counts for each actor in
+  `non_bacon_actors` (use as `prob =` when sampling starting actors)
+
+### Hints
+
+- To dynamically change the radio button choices from the server, use
+  `updateRadioButtons(session, "selection", choices = new_choices_vector)`.
+  The `session` object is available as a parameter of the server function.
+
+- `game$phase` is either `"actor"` or `"movie"` --- check it to decide what to
+  do when `input$choose` is clicked.
+- `game$visited` tracks actors already chosen so they can be excluded from
+  future cast lists. Use `setdiff()` to remove them.
+- `game$visited_movies` plays the analogous role for movies: update it in the
+  movie phase, and `setdiff()` it from `get_movies()` in the actor phase so
+  the player can't revisit a movie already on the path.
+- The step counter (`game$step`) counts *actor* selections only, not movie
+  selections. The game ends at 6 actor selections.
+- Use `req(game$active, input$selection)` at the top of your `observeEvent` for
+  the choose button so it only fires when a game is in progress.
+- For the path display, `seq_along(game$path)` with odd indices = actors and
+  even indices = movies.
+
+End the file with `shinyApp(ui, server)` (already provided). Test with
+`shiny::runApp("bacon_app.R")`. Your completed code will be included
+automatically:
+
+```{r, code=readLines("bacon_app.R"), eval=FALSE}
+```
