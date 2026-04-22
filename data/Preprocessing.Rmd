@@ -26,6 +26,11 @@ write_rds(title_basics, "title_basics.rda")
 write_rds(title_principals, "title_principals.rda")
 write_rds(title_ratings, "title_ratings.rda")
 
+NAME_BASICS <- read_rds("/cloud/project/data/name_basics.rda")
+TITLE_BASICS <- read_rds("/cloud/project/data/title_basics.rda")
+TITLE_PRINCIPALS <- read_rds("/cloud/project/data/title_principals.rda")
+TITLE_RATINGS <- read_rds("/cloud/project/data/title_ratings.rda")
+
 
 ```
   
