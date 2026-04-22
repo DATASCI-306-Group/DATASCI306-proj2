@@ -3,3 +3,30 @@ title: "Preprocessing"
 output: html_document
 ---
 
+Write a function that will load a table from the IMDb files in the `data/` directory.
+  * The function should take the file name (without the ".csv.gz" portion) as an argument
+  * The function should load the appropriate `.csv.gz` file.
+  * Make sure that all "\\N" values (which IMDB uses to indicate missing values) are turned into proper NA values in R
+  * The function should return the table.
+  
+```{r}
+imdb_table <- function(file_name) {
+  file_name <- paste0(file_name, ".csv.gz")
+  return(as.data.frame(read.csv(file_name, na.strings = "\\N")))
+  
+}
+
+name_basics <- imdb_table("name_basics_sample")
+title_basics <- imdb_table("title_basics_sample")
+title_principals <- imdb_table("title_principals_sample")
+title_ratings <- imdb_table("title_ratings_sample")
+
+write_rds(name_basics, "name_basics.rda")
+write_rds(title_basics, "title_basics.rda")
+write_rds(title_principals, "title_principals.rda")
+write_rds(title_ratings, "title_ratings.rda")
+
+
+```
+  
+  
