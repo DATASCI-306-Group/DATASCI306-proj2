@@ -76,11 +76,44 @@ ggplot(data = TITLE_PRINCIPALS) +
 * Find all the actors with first names "Tom", "Thomas", "Thom" or "Tomas". How many are there?
 * How many titles use alliteration (i.e., all words in the title start with the same letter)?
 
+
+
+
+
 ## Part III: Pivoting
 
 * Create a new version of the `titles_basics` table that has one row for each title-genre combination. See the `separate_rows` function for a useful too here.
 * Using that table, create a line plot of the count different genres over time (you may limit this to the most common genres if you wish).
 * Use the `model.matrix` function in the following way: `model.matrix(yourtalltable, ~ genre - 1)` to create a wide table with one column for each genre. Use this table to find the most common pair of genres (hint: use the `cor` function or produce facet plots)
+
+```{r}
+#  Create a new version of the `titles_basics` table that has one row for each title-genre combination (seperate_rows function will be useful)
+TITLE_BASICS_GENRES <- TITLE_BASICS |> separate_rows(genres, sep = ",")
+
+# Using that table, create a line plot of the count different genres over time
+ggplot(data = TITLE_BASICS_GENRES) + 
+  geom_bar(aes(x = releaseYear, fill = genres)) + 
+  theme_light() + 
+  theme(legend.position = "bottom")
+
+# Use the model.matrix function as described to create a wide table with one column for each genre
+# Use this to table to find the most common -air of genres (use the cor function or produce facet plots)
+GENRE_MATRIX <- model.matrix(~ genres - 1, data = TITLE_BASICS_GENRES)
+GENRE_COR <- cor(GENRE_MATRIX)
+
+diag(GENRE_COR) <- NA
+GENRE_COR[upper.tri(GENRE_COR)] <- NA
+
+GENRE_COR <- as.data.frame(as.table(GENRE_COR)) |>
+  filter(!is.na(Freq)) |>
+  arrange(desc(Freq))
+
+GENRE_COR |>
+  head(10)
+```
+
+
+
 
 ## Part IV: Joining Tables
 
@@ -94,6 +127,46 @@ ggplot(data = TITLE_PRINCIPALS) +
   * Graph ratings against years. What trends do you see?
 * Create a table with one row for each person in the `name_basics` table and title they are known for. Join this to the ratings table to get the ratings of the "known for" films. Find the person (or people) who have the highest median known for rating.
 * 
+
+```{r}
+# Join the table with one title-genre per row from the previous section with the ratings table
+TITLE_BASICS_GENRES_RATINGS <- TITLE_BASICS_GENRES |>
+  left_join(TITLE_RATINGS, by = "tconst")
+
+
+# Join the `title_basics` with the ratings table
+# Have the number of ratings changed over time (based on release year)? 
+# Display graphically but also answer with numerical results.
+TITLE_BASICS_RATINGS <- TITLE_BASICS |>
+  left_join(TITLE_RATINGS, by = "tconst")
+
+TITLE_BASICS_RATINGS |>
+  group_by(releaseYear) |>
+  summarise(meanNumVotes = mean(numVotes, na.rm = TRUE)) |>
+  ggplot() + 
+  geom_line(aes(x = releaseYear, y = meanNumVotes)) + 
+  theme_light() + 
+  labs(x = "Release Year", y = "Average Number of Votes")
+
+TITLE_BASICS_RATINGS |>
+  group_by(releaseYear) |>
+  summarise(meanNumVotes = mean(numVotes, na.rm = TRUE)) |>
+  filter(!is.na(releaseYear)) |>
+  cor(x = .$releaseYear, y = .$meanNumVotes)
+
+
+# Join the names with the ratings and the principals table
+# Group by individual people, find the top ten people based on the median rating of the titles they appear in
+# Find the proportions of genres for the the titles that include the top 10 rated principals
+# Graph ratings against years.
+
+
+
+```
+
+
+
+
 
 ## Part V: Profiling and Parallel Processing
 
