@@ -55,6 +55,22 @@ ggplot(data = TITLE_BASICS) +
 
 ggplot(data = TITLE_PRINCIPALS) +
   geom_bar(aes(x = category))
+
+TITLE_RATINGS <- TITLE_RATINGS %>% mutate(rating_buckets = case_when(
+  averageRating < 3 ~ "Awful",
+  averageRating < 4  ~ "Poor",
+  averageRating < 7 ~ "Average",
+  averageRating < 9 ~ "Good",
+  TRUE ~ "Excellent"
+))
+
+
+ggplot(data = TITLE_RATINGS) +
+  geom_histogram(aes(x = log(numVotes),
+                 fill = rating_buckets), color = "black", bins = 26) + 
+  facet_wrap(~as.factor(rating_buckets)) 
+
+
 ```
   
   
