@@ -47,14 +47,28 @@ summary(TITLE_PRINCIPALS$category)
 summary(TITLE_BASICS$titleType)
 
 ggplot(data = NAME_BASICS) + 
-  geom_histogram(aes(x = birthYear), bins = 700, fill = "plum", color = "darkblue") + coord_cartesian(xlim = c(1800, 2010)) + theme_light()
+  geom_density(aes(x = birthYear), bins = 700, fill = "plum", color = "darkblue", alpha = .7) + coord_cartesian(xlim = c(1800, 2026)) + theme_light() +
+  geom_density(aes(x = deathYear), bins = 700, fill = "lightblue", color = "darkblue", alpha = .7) +
+ annotate("text", x = 1899, y = .02, label = "Death dates shows higher peak, steeper distribution than birth dates") +
+  labs(x = "Date", y = "Density", title = "Distribution of Birth and Death Years") +
+  annotate("point", x = 1845, y = .015, fill = "plum", color = "darkblue", shape = 21, size = 3) +
+  annotate("point", x = 1845, y = .013, fill = "lightblue", color = "darkblue", shape = 21, size = 3) +
+  annotate("text", x = 1864, y = .015, color = "darkblue", label = "Birth Dates", size = 4) +
+  annotate("text", x = 1865, y = .013, color = "darkblue", label = "Death Dates", size = 4) +
+  annotate("segment", x = 1990, y = .02, xend = 2013, yend = .0219, arrow = arrow(length = unit(.5, "cm")))
 
 ggplot(data = TITLE_BASICS) +
   geom_bar(aes(x = titleType, fill = titleType)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+  annotate("text", x = 5.5, y = 25000, label = "tv episodes most common") +
+labs(title = "Counts of Each Title") +
+  annotate("curve", x = 5.6, y = 27000, xend = 3.8, yend = 29200, curvature = .3, arrow = arrow(length = unit(.5, "cm")))
 
 ggplot(data = TITLE_PRINCIPALS) +
-  geom_bar(aes(x = category))
+  geom_bar(aes(x = as.factor(category), y = after_stat(prop), group = 1,
+               fill = after_stat(as.factor(x))), show.legend = FALSE) +   
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+  labs(x = "Category", y = "Proportion", title = "Proportion of Job Categories from IMDb")
 
 TITLE_RATINGS <- TITLE_RATINGS %>% mutate(rating_buckets = case_when(
   averageRating < 3 ~ "Awful",
@@ -68,7 +82,7 @@ TITLE_RATINGS <- TITLE_RATINGS %>% mutate(rating_buckets = case_when(
 ggplot(data = TITLE_RATINGS) +
   geom_histogram(aes(x = log(numVotes),
                  fill = rating_buckets), color = "black", bins = 26) + 
-  facet_wrap(~as.factor(rating_buckets)) 
+  facet_wrap(~as.factor(rating_buckets))
 
 
 ```
