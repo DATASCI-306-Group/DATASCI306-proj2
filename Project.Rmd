@@ -32,12 +32,38 @@ The [Internet Movie Database (IMDb)]() contains information on millions of movie
 
 * For each of the 4 tables, perform basic exploratory data analysis. Report the following information:
   * For each quantitative column, provide some summary statistics
-  * For any character columns, decided if they are actually representing factors/categorical data with a moderate number of columns. If so report the distributions for these variables.
+  * For any character columns, decide if they are actually representing factors/categorical data with a moderate number of columns. If so report the distributions for these variables.
   * Provide a plot for each table. Across all of the plots, try to show off the most possible different ggplot features (`geoms_` functions, `stat_` functions, coordinate systems, facets, use of several variables, annotations)
+  
+```{r}
+NAME_BASICS %>% select(where(is.numeric)) %>% summary()
+TITLE_BASICS %>% select(where(is.numeric)) %>% summary()
+TITLE_PRINCIPALS %>% select(where(is.numeric)) %>% summary()
+TITLE_RATINGS %>% select(where(is.numeric)) %>% summary()
+
+TITLE_PRINCIPALS$category <- as.factor(TITLE_PRINCIPALS$category)
+TITLE_BASICS$titleType <- as.factor(TITLE_BASICS$titleType)
+summary(TITLE_PRINCIPALS$category)
+summary(TITLE_BASICS$titleType)
+
+ggplot(data = NAME_BASICS) + 
+  geom_histogram(aes(x = birthYear), bins = 700, fill = "plum", color = "darkblue") + coord_cartesian(xlim = c(1800, 2010)) + theme_light()
+
+ggplot(data = TITLE_BASICS) +
+  geom_bar(aes(x = titleType, fill = titleType)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+
+ggplot(data = TITLE_PRINCIPALS) +
+  geom_bar(aes(x = category))
+```
+  
+  
 * For the `titles_basics` table
   * use two different variables to group and explore how `runtimeMinutes` varies for these different groups. Produce appropriate summaries.
   * How many titles are known for name that is different than the original release name?
   * Graph the conditional distributions of release year based on the previous results. Comment on any trends you observe.
+  
+  
 * For the ratings, use the `cut` function to break the data into three groups based on the average ratings. Are higher rated titles rated more often or less often than lower rated titles? 
 * For the names table, 
   * Count the number of titles each person is known for and plot this distribution.
@@ -45,6 +71,8 @@ The [Internet Movie Database (IMDb)]() contains information on millions of movie
       * Group the data into living and deceased cast members. 
       * For deceased cast members, provide a graph that shows the distribution of ages.
       * Do the same for living cast members.
+      
+      
 * Find all the actors with first names "Tom", "Thomas", "Thom" or "Tomas". How many are there?
 * How many titles use alliteration (i.e., all words in the title start with the same letter)?
 
