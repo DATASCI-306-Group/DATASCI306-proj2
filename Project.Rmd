@@ -196,19 +196,29 @@ TITLE_BASICS %>% filter(str_detect(primaryTitle, regex("^([A-Za-z])\\w*(\\s+\\1\
 * Create a new version of the `titles_basics` table that has one row for each title-genre combination. See the `separate_rows` function for a useful too here.
 * Using that table, create a line plot of the count different genres over time (you may limit this to the most common genres if you wish).
 * Use the `model.matrix` function in the following way: `model.matrix(yourtalltable, ~ genre - 1)` to create a wide table with one column for each genre. Use this table to find the most common pair of genres (hint: use the `cor` function or produce facet plots)
+- 
 
 ```{r}
 #  Create a new version of the `titles_basics` table that has one row for each title-genre combination (seperate_rows function will be useful)
 TITLE_BASICS_GENRES <- TITLE_BASICS |> separate_rows(genres, sep = ",")
 
-# Using that table, create a line plot of the count different genres over time
-ggplot(data = TITLE_BASICS_GENRES) + 
-  geom_bar(aes(x = startYear, fill = genres)) + 
-  theme_light() + 
-  theme(legend.position = "bottom")
+# Line plot of genre counts over time (top 8 genres for readability)
+top_genres <- TITLE_BASICS_GENRES |>
+  count(genres) |>
+  slice_max(n, n = 8) |>
+  pull(genres)
+
+TITLE_BASICS_GENRES |>
+  filter(genres %in% top_genres, !is.na(startYear)) |>
+  count(startYear, genres) |>
+  ggplot(aes(x = startYear, y = n, color = genres)) +
+  geom_line() +
+  theme_light() +
+  labs(x = "Start Year", y = "Count", title = "Genre Counts Over Time", color = "Genre")
 
 # Use the model.matrix function as described to create a wide table with one column for each genre
 # Use this to table to find the most common -air of genres (use the cor function or produce facet plots)
+
 GENRE_MATRIX <- model.matrix(~ genres - 1, data = TITLE_BASICS_GENRES)
 
 GENRE_COR <- cor(GENRE_MATRIX)
@@ -278,11 +288,10 @@ TITLE_BASICS_RATINGS |>
   theme_light() + 
   labs(x = "Start Year", y = "Average Number of Votes")
 
-TITLE_BASICS_RATINGS |>
+ratings_by_year <- TITLE_BASICS_RATINGS |>
   group_by(startYear) |>
   summarise(meanNumVotes = mean(numVotes, na.rm = TRUE)) |>
-  filter(!is.na(startYear)) |>
-  cor(x = .$startYear, y = .$meanNumVotes)
+  filter(!is.na(startYear))
 
 cor(ratings_by_year$startYear, ratings_by_year$meanNumVotes, use = "complete.obs")
 
