@@ -22,9 +22,9 @@ ui <- fluidPage(
 # Define server logic
 server <- function(input, output, session) {
   # Load the correct .rda files
-  principals <- read_rds("data/title_principals_sample.rda")
-  names_tbl  <- read_rds("data/name_basics_sample.rda")
-  ratings    <- read_rds("data/title_ratings_sample.rda")
+  principals <- read_rds("../data/title_principals.rda")
+  names_tbl  <- read_rds("../data/name_basics.rda")
+  ratings    <- read_rds("../data/title_ratings.rda")
   
   # Populate dropdown from actual category column
   observe({
