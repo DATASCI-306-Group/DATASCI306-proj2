@@ -202,8 +202,35 @@ TITLE_BASICS_RATINGS |>
 
 * These are large data sets (and yet only a sample of the entire IMDb!), so it make sense spend some time improving our code.
 * Pick one or more of the previous problems and profile the performance of that piece. Write up your findings. If you see any opportunities to improve performance, feel fee to implement than and share the results.
+```{R}
+library(profvis)
+profvis({
+  TITLE_BASICS_RATINGS <- TITLE_BASICS |>
+  left_join(TITLE_RATINGS, by = "tconst")
+
+TITLE_BASICS_RATINGS |>
+  group_by(startYear) |>
+  summarise(meanNumVotes = mean(numVotes, na.rm = TRUE))
+
+})
+
+profvis({
+  TITLE_BASICS_SMALL <- TITLE_BASICS |> 
+  select(tconst, startYear)
+  TITLE_BASICS_RATINGS_SMALL <- TITLE_BASICS_SMALL |>
+    left_join(TITLE_RATINGS, by = "tconst")
+  TITLE_BASICS_RATINGS_SMALL |>
+  group_by(startYear) |>
+  summarise(meanNumVotes = mean(numVotes, na.rm = TRUE))
+})
+
+```
+After running a profile on these functions from part IV, we found that it had a run time of 90ms. The functions perform a left join on the title_basics_ratings and title_basics tables and then summarizes the mean number of votes by release year. The profile flame graph revealed that the left join required 88% of the total run time. A simple fix to improve run time is to first filter the tables to include only the necessary columns for the summary and join. By reducing the number of columns, the run time improves as it processing less data. 
+
 * Select a previous computation that could be improved using parallelization and implement a parallelization solution. Using `system.time` show that parallelization improves performance.
+
 * One task we performed involved counting items in strings separated by commas. Propose two different functions that could perform this taks. Compare them using bench marking. Which version would you recommend?
+
 
 ## Part VI: Shiny Applications
 
