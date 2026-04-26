@@ -305,9 +305,18 @@ After running a profile on these functions from part IV, we found that it had a 
 
 Using results from the previous section, create a shiny application that allows users to interact with the with the IMDb data. The application should use both interactive graphs and at least 3 widgets.
 
+
+
+
 ### Application 2
 
 In the principals table, there is a `category` column. Use this column as a primary filter to allow users to then select specific job categories. After select the specific job categories, display information from another table.
+
+
+```{r, code=readLines("app_2.R"), eval=FALSE}
+```
+
+
 
 ## Extra Credit: 6 Degrees of Kevin Bacon
 
