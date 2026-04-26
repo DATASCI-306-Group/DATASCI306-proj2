@@ -176,6 +176,7 @@ ggplot() +
 * Find all the actors with first names "Tom", "Thomas", "Thom" or "Tomas". How many are there?
 6084
 * How many titles use alliteration (i.e., all words in the title start with the same letter)?
+2246
 
 ```{r}
 NAME_BASICS %>% filter(str_detect(primaryName, "Tom|Thomas|Thom|Tomas")) %>% summarize(n())
