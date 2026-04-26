@@ -12,7 +12,10 @@ ui <- fluidPage(
       selectInput("category", "Select Job Category:", choices = NULL)
     ),
     mainPanel(
+<<<<<<< HEAD
       h4("People in this category (with title ratings)"),
+=======
+>>>>>>> c61a004 (App 2 created)
       tableOutput("job_info")
     )
   )
@@ -20,6 +23,7 @@ ui <- fluidPage(
 
 
 # Define server logic
+<<<<<<< HEAD
 server <- function(input, output, session) {
   # Load the correct .rda files
   principals <- read_rds("../data/title_principals.rda")
@@ -43,6 +47,25 @@ server <- function(input, output, session) {
       select(primaryName, tconst, category, characters, averageRating, numVotes) |>
       arrange(desc(averageRating)) |>
       head(50)  # limit rows for display
+=======
+server <- function(input, output) {
+  # Load data
+  principals <- read.csv("principals.csv")
+  jobs <- read.csv("jobs.csv")
+  
+  # Update category choices based on the principals table
+  observe({
+    categories <- unique(principals$category)
+    updateSelectInput(session, "category", choices = categories)
+  })
+  
+  # Display job information based on selected category
+  output$job_info <- renderTable({
+    req(input$category) # Ensure a category is selected
+    selected_jobs <- principals[principals$category == input$category, ]
+    job_info <- merge(selected_jobs, jobs, by = "job_id") # Assuming 'job_id' is the common column
+    return(job_info)
+>>>>>>> c61a004 (App 2 created)
   })
 }
 

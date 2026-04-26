@@ -306,7 +306,8 @@ cor(ratings_by_year$startYear, ratings_by_year$meanNumVotes, use = "complete.obs
 ```{R}
 
 PRINCIPALS_RATINGS <- TITLE_PRINCIPALS |>
-  left_join(TITLE_RATINGS, by = "tconst") 
+  left_join(TITLE_RATINGS, by = "tconst") |>
+  left_join(TITLE_BASICS |> select(tconst, startYear), by = "tconst")
 
 # Top 10 people by median rating
 top10 <- PRINCIPALS_RATINGS |>
@@ -330,7 +331,6 @@ TITLE_BASICS_GENRES |>
 # Ratings vs years
 PRINCIPALS_RATINGS |>
   filter(!is.na(startYear)) |>
-  left_join(TITLE_BASICS |> select(tconst, startYear), by = "tconst") |>
   ggplot(aes(x = startYear, y = averageRating)) +
   geom_smooth() +
   theme_light() +
@@ -433,12 +433,14 @@ bm <- bench::mark(count_items_stringr(test), count_items_loop(test))
 bm
 ```
 I would recommend the vectorized version as it is much more efficient in counting the number of items. 
+
 ## Part VI: Shiny Applications
 
 ### Application 1
 
 Using results from the previous section, create a shiny application that allows users to interact with the with the IMDb data. The application should use both interactive graphs and at least 3 widgets.
-
+```{r, code=readLines("app_1.R"), eval=FALSE}
+```
 
 
 
