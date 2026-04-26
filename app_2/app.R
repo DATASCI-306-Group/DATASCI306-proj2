@@ -3,6 +3,12 @@
 # job categories, display information from another table.
 
 library(shiny)
+library(tidyverse)
+
+# Load the correct .rda files
+principals <- read_rds("../data/title_principals.rda")
+names_tbl  <- read_rds("../data/name_basics.rda")
+ratings    <- read_rds("../data/title_ratings.rda")
 
 # Define UI for application
 ui <- fluidPage(
@@ -12,6 +18,7 @@ ui <- fluidPage(
       selectInput("category", "Select Job Category:", choices = NULL)
     ),
     mainPanel(
+
       h4("People in this category (with title ratings)"),
       tableOutput("job_info")
     )
@@ -20,11 +27,9 @@ ui <- fluidPage(
 
 
 # Define server logic
+
 server <- function(input, output, session) {
-  # Load the correct .rda files
-  principals <- read_rds("../data/title_principals.rda")
-  names_tbl  <- read_rds("../data/name_basics.rda")
-  ratings    <- read_rds("../data/title_ratings.rda")
+
   
   # Populate dropdown from actual category column
   observe({
@@ -45,6 +50,7 @@ server <- function(input, output, session) {
       head(50)  # limit rows for display
   })
 }
+
 
 # Run the application 
 shinyApp(ui = ui, server = server)
