@@ -28,6 +28,14 @@ The [Internet Movie Database (IMDb)]() contains information on millions of movie
 * Run the function on all of the `*_sample.csv.gz` files to created processed `.rda` files.
 * In your other files, you can load these using the `TABLE <- read_rds("data/FILENAME.rda")` function.
 
+```{r}
+NAME_BASICS <- read_rds("data/name_basics.rda")
+TITLE_BASICS <- read_rds("data/title_basics.rda")
+TITLE_PRINCIPALS <- read_rds("data/title_principals.rda")
+TITLE_RATINGS <- read_rds("data/title_ratings.rda")
+```
+
+
 ## Part II: EDA of individual tables
 
 * For each of the 4 tables, perform basic exploratory data analysis. Report the following information:
@@ -104,7 +112,7 @@ TITLE_BASICS <- TITLE_BASICS %>% mutate(two_decades =
   )
 )
 
-#use two_decade and title type to eplore run time
+#use two_decade and title type to explore run time
 
 TITLE_BASICS %>% group_by(two_decades, titleType) %>% summarize(mean_runtime = mean(as.numeric(runtimeMinutes), na.rm = TRUE))
 
