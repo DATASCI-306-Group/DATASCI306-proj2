@@ -12,6 +12,7 @@ ui <- fluidPage(
       selectInput("category", "Select Job Category:", choices = NULL)
     ),
     mainPanel(
+      h4("People in this category (with title ratings)"),
       tableOutput("job_info")
     )
   )
@@ -19,23 +20,29 @@ ui <- fluidPage(
 
 
 # Define server logic
-server <- function(input, output) {
-  # Load data
-  principals <- read.csv("principals.csv")
-  jobs <- read.csv("jobs.csv")
+server <- function(input, output, session) {
+  # Load the correct .rda files
+  principals <- read_rds("data/title_principals_sample.rda")
+  names_tbl  <- read_rds("data/name_basics_sample.rda")
+  ratings    <- read_rds("data/title_ratings_sample.rda")
   
-  # Update category choices based on the principals table
+  # Populate dropdown from actual category column
   observe({
-    categories <- unique(principals$category)
+    categories <- sort(unique(principals$category))
     updateSelectInput(session, "category", choices = categories)
   })
   
-  # Display job information based on selected category
   output$job_info <- renderTable({
-    req(input$category) # Ensure a category is selected
-    selected_jobs <- principals[principals$category == input$category, ]
-    job_info <- merge(selected_jobs, jobs, by = "job_id") # Assuming 'job_id' is the common column
-    return(job_info)
+    req(input$category)
+    
+    # Filter principals by selected category, then join names + ratings
+    principals |>
+      filter(category == input$category) |>
+      left_join(names_tbl |> select(nconst, primaryName), by = "nconst") |>
+      left_join(ratings, by = "tconst") |>
+      select(primaryName, tconst, category, characters, averageRating, numVotes) |>
+      arrange(desc(averageRating)) |>
+      head(50)  # limit rows for display
   })
 }
 

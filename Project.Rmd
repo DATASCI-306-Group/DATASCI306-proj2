@@ -189,15 +189,15 @@ TITLE_BASICS_GENRES <- TITLE_BASICS |> separate_rows(genres, sep = ",")
 
 # Using that table, create a line plot of the count different genres over time
 ggplot(data = TITLE_BASICS_GENRES) + 
-  geom_bar(aes(x = releaseYear, fill = genres)) + 
+  geom_bar(aes(x = startYear, fill = genres)) + 
   theme_light() + 
   theme(legend.position = "bottom")
 
 # Use the model.matrix function as described to create a wide table with one column for each genre
 # Use this to table to find the most common -air of genres (use the cor function or produce facet plots)
 GENRE_MATRIX <- model.matrix(~ genres - 1, data = TITLE_BASICS_GENRES)
-GENRE_COR <- cor(GENRE_MATRIX)
 
+GENRE_COR <- cor(GENRE_MATRIX)
 diag(GENRE_COR) <- NA
 GENRE_COR[upper.tri(GENRE_COR)] <- NA
 
@@ -230,6 +230,25 @@ GENRE_COR |>
 TITLE_BASICS_GENRES_RATINGS <- TITLE_BASICS_GENRES |>
   left_join(TITLE_RATINGS, by = "tconst")
 
+# Highest and lowest rated genre
+TITLE_BASICS_GENRES_RATINGS |>
+  group_by(genres) |>
+  summarise(mean_rating = mean(averageRating, na.rm = TRUE)) |>
+  arrange(desc(mean_rating))
+
+# Stacked bar: genre proportions over time
+TITLE_BASICS_GENRES_RATINGS |>
+  filter(!is.na(startYear), genres %in% top_genres) |>
+  mutate(decade = floor(startYear / 10) * 10) |>
+  count(decade, genres) |>
+  group_by(decade) |>
+  mutate(prop = n / sum(n)) |>
+  ggplot(aes(x = decade, y = prop, fill = fct_reorder(genres, prop))) +
+  geom_col() +
+  theme_light() +
+  labs(x = "Decade", y = "Proportion", fill = "Genre",
+       title = "Genre Proportions Over Time")
+
 
 # Join the `title_basics` with the ratings table
 # Have the number of ratings changed over time (based on release year)? 
@@ -238,27 +257,68 @@ TITLE_BASICS_RATINGS <- TITLE_BASICS |>
   left_join(TITLE_RATINGS, by = "tconst")
 
 TITLE_BASICS_RATINGS |>
-  group_by(releaseYear) |>
+  group_by(startYear) |>
   summarise(meanNumVotes = mean(numVotes, na.rm = TRUE)) |>
   ggplot() + 
-  geom_line(aes(x = releaseYear, y = meanNumVotes)) + 
+  geom_line(aes(x = startYear, y = meanNumVotes)) + 
   theme_light() + 
-  labs(x = "Release Year", y = "Average Number of Votes")
+  labs(x = "Start Year", y = "Average Number of Votes")
 
 TITLE_BASICS_RATINGS |>
-  group_by(releaseYear) |>
+  group_by(startYear) |>
   summarise(meanNumVotes = mean(numVotes, na.rm = TRUE)) |>
-  filter(!is.na(releaseYear)) |>
-  cor(x = .$releaseYear, y = .$meanNumVotes)
+  filter(!is.na(startYear)) |>
+  cor(x = .$startYear, y = .$meanNumVotes)
+
+cor(ratings_by_year$startYear, ratings_by_year$meanNumVotes, use = "complete.obs")
 
 
 # Join the names with the ratings and the principals table
 # Group by individual people, find the top ten people based on the median rating of the titles they appear in
 # Find the proportions of genres for the the titles that include the top 10 rated principals
-# Graph ratings against years.
+# Graph ratings against years
+
+PRINCIPALS_RATINGS <- TITLE_PRINCIPALS |>
+  left_join(TITLE_RATINGS, by = "tconst") |>
+  left_join(NAME_BASICS |> select(nconst, primaryName), by = "nconst")
+
+# Top 10 people by median rating
+top10 <- PRINCIPALS_RATINGS |>
+  group_by(nconst, primaryName) |>
+  summarise(median_rating = median(averageRating, na.rm = TRUE), .groups = "drop") |>
+  slice_max(median_rating, n = 10)
+
+top10
+
+# Genre proportions for top 10 principals
+TITLE_BASICS_GENRES |>
+  filter(tconst %in% (TITLE_PRINCIPALS |>
+    filter(nconst %in% top10$nconst) |>
+    pull(tconst))) |>
+  count(genres) |>
+  mutate(prop = n / sum(n)) |>
+  arrange(desc(prop))
+
+# Ratings vs years
+PRINCIPALS_RATINGS |>
+  filter(!is.na(startYear)) |>
+  left_join(TITLE_BASICS |> select(tconst, startYear), by = "tconst") |>
+  ggplot(aes(x = startYear, y = averageRating)) +
+  geom_smooth() +
+  theme_light() +
+  labs(x = "Start Year", y = "Average Rating",
+       title = "Ratings Over Time")
 
 
+# Create a table with one row for each person in the `name_basics` table and title they are known for. Join this to the ratings table to get the ratings of the "known for" films. Find the person (or people) who have the highest median known for rating
+NAME_KNOWN_RATINGS <- NAME_BASICS |>
+  separate_longer_delim(cols = knownForTitles, delim = ",") |>
+  left_join(TITLE_RATINGS, by = c("knownForTitles" = "tconst"))
 
+NAME_KNOWN_RATINGS |>
+  group_by(nconst, primaryName) |>
+  summarise(median_known_rating = median(averageRating, na.rm = TRUE), .groups = "drop") |>
+  slice_max(median_known_rating, n = 5)
 ```
 
 
