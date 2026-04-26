@@ -379,6 +379,35 @@ After running a profile on these functions from part IV, we found that it had a 
 
 * Select a previous computation that could be improved using parallelization and implement a parallelization solution. Using `system.time` show that parallelization improves performance.
 
+```{R}
+joined <- TITLE_PRINCIPALS |>
+  left_join(TITLE_RATINGS, by = "tconst")
+```
+```{R}
+system.time({
+  serial_medians <- joined |>
+    group_by(nconst) |>
+    summarise(median_rating = median(averageRating, na.rm = TRUE))
+})
+
+```
+
+```{R}
+library(data.table)
+dt <- as.data.table(joined)
+chunks <- split(dt, f = sort(rep(1:4, length.out = nrow(dt))))
+safe_median_dt <- function(chunk) {
+  chunk[, .(median_rating = median(averageRating, na.rm = TRUE)), by = nconst]
+}
+
+system.time({
+  results_list <- future_lapply(chunks, safe_median_dt)
+  parallel_medians <- rbindlist(results_list)
+})
+
+
+```
+
 * One task we performed involved counting items in strings separated by commas. Propose two different functions that could perform this taks. Compare them using bench marking. Which version would you recommend?
 
 
