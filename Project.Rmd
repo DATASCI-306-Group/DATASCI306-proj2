@@ -4,12 +4,15 @@ author: "DataSci 306 Instructional Team"
 date: "`r Sys.Date()`"
 output:
   pdf_document: default
-  html_document: default
+  html_document:
+    df_print: paged
+always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(bench)
 ```
 
 ## Investigating the Internet Movie Database (IMDB)
@@ -187,7 +190,7 @@ NAME_BASICS %>% filter(str_detect(primaryName, "Tom|Thomas|Thom|Tomas")) %>% sum
 #space one or more, detect pattern, rest of word 0 or more times - () must happen at least 1 time
 #find end 
 
-TITLE_BASICS %>% filter(str_detect(primaryTitle, regex("^([A-Za-z])\\w*(\\s+\\1\\w*)+$", ignore_case = TRUE)))
+TITLE_BASICS %>% filter(str_detect(primaryTitle, regex("^([A-Za-z])\\w*(\\s+\\1\\w*)+$", ignore_case = TRUE))) %>% summarize(n())
 ```
 
 
@@ -316,7 +319,8 @@ top10 <- PRINCIPALS_RATINGS |>
 
 top10 |> left_join(NAME_BASICS |> select(nconst, primaryName), by = "nconst")
 ```
-```{R}
+
+```{R, eval = FALSE}
 
 # Genre proportions for top 10 principals
 TITLE_BASICS_GENRES |>
@@ -329,8 +333,8 @@ TITLE_BASICS_GENRES |>
 
 # Ratings vs years
 PRINCIPALS_RATINGS |>
-  filter(!is.na(startYear)) |>
   left_join(TITLE_BASICS |> select(tconst, startYear), by = "tconst") |>
+  filter(!is.na(startYear))  |>
   ggplot(aes(x = startYear, y = averageRating)) +
   geom_smooth() +
   theme_light() +
@@ -447,7 +451,7 @@ Using results from the previous section, create a shiny application that allows 
 In the principals table, there is a `category` column. Use this column as a primary filter to allow users to then select specific job categories. After select the specific job categories, display information from another table.
 
 
-```{r, code=readLines("app_2.R"), eval=FALSE}
+```{r, code=readLines("app_2/app.R"), eval=FALSE}
 ```
 
 
