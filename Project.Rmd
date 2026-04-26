@@ -72,7 +72,7 @@ ggplot(data = TITLE_PRINCIPALS) +
 
 TITLE_RATINGS <- TITLE_RATINGS %>% mutate(rating_buckets = case_when(
   averageRating < 3 ~ "Awful",
-  averageRating < 4  ~ "Poor",
+  averageRating < 5  ~ "Poor",
   averageRating < 7 ~ "Average",
   averageRating < 9 ~ "Good",
   TRUE ~ "Excellent"
@@ -90,22 +90,89 @@ ggplot(data = TITLE_RATINGS) +
   
 * For the `titles_basics` table
   * use two different variables to group and explore how `runtimeMinutes` varies for these different groups. Produce appropriate summaries.
-  * How many titles are known for name that is different than the original release name?
+  * How many titles are known for name that is different than the original release name? 7244 titles have a primary title and original title that do not match
   * Graph the conditional distributions of release year based on the previous results. Comment on any trends you observe.
   
+The titles that are known for a name that is the same as the original release name have higher density in more recent years. The titles that are knwown for a name that is different than the original release name have higher density in years between 1950 - 2000
+  
+```{r}
+#create groups for start year
+
+TITLE_BASICS <- TITLE_BASICS %>% mutate(two_decades = 
+  cut(startYear, breaks = c(1887, 1899, 1919, 1939, 1959, 1979, 1999, 2025),
+    labels = c("Before 1900","1900_1919", "1920_1939","1940_1959", "1960_1979", "1980_1999", "2000_2025")
+  )
+)
+
+#use two_decade and title type to eplore run time
+
+TITLE_BASICS %>% group_by(two_decades, titleType) %>% summarize(mean_runtime = mean(as.numeric(runtimeMinutes), na.rm = TRUE))
+
+TITLE_BASICS %>% summarize(sum(primaryTitle != originalTitle))
+
+no_match <- TITLE_BASICS %>% filter(primaryTitle != originalTitle)
+match <- TITLE_BASICS %>% filter(primaryTitle == originalTitle)
+
+ggplot() +
+    geom_density(data = no_match, aes(x = startYear),
+                 color = "black", fill = "plum", alpha = .5) +
+  geom_density(data = match, aes(x = startYear), 
+               color = "black", fill = "lightblue", alpha = .5) 
+
+
+
+
+```
+
   
 * For the ratings, use the `cut` function to break the data into three groups based on the average ratings. Are higher rated titles rated more often or less often than lower rated titles? 
+
+Higher rated titled are rated more often than lower rated titles. 
+
 * For the names table, 
   * Count the number of titles each person is known for and plot this distribution.
   * investigate the age of cast members
-      * Group the data into living and deceased cast members. 
+      * Group the data into living and deceased cast members. - distribution centered around 100 years 
       * For deceased cast members, provide a graph that shows the distribution of ages.
-      * Do the same for living cast members.
-      
+      * Do the same for living cast members. - distribution centered around 55 years 
+    
+    
+```{r}
+
+TITLE_RATINGS %>% mutate(rating_cut = cut(as.numeric(averageRating), breaks = 3, labels = 
+ c("Low", "Mid", "High"))) %>% group_by(rating_cut) %>% summarise(mean_numvotes = mean(as.numeric(numVotes), na.rm = TRUE))
+
+name_titles <- NAME_BASICS %>% separate_longer_delim(cols = knownForTitles, delim = ",") %>%
+  group_by(primaryName) %>% summarize(titles_per_name = n_distinct(knownForTitles))
+  
+ggplot(name_titles) +
+  geom_histogram(aes(x = titles_per_name), bins = 50, fill = "plum", color = "black")
+
+living <- NAME_BASICS %>% filter(is.na(deathYear) == TRUE) %>% mutate(age = as.numeric(year(now())) - as.numeric(birthYear))
+deceased <- NAME_BASICS %>% filter(is.na(deathYear) == FALSE) %>% mutate(age = as.numeric(year(now())) - as.numeric(birthYear))
+
+ggplot() +
+  geom_histogram(data = deceased, aes(x = age), 
+                 bins = 700, color = "black", fill = "darkgreen", alpha = .65) +
+   coord_cartesian(xlim = c(1,190))
+
+ggplot() +
+  geom_histogram(data = living, aes(x = age), 
+                 bins = 500, color = "black", fill = "purple3", alpha = .65) +
+   coord_cartesian(xlim = c(1,190))
+```
+
+
+    
       
 * Find all the actors with first names "Tom", "Thomas", "Thom" or "Tomas". How many are there?
 * How many titles use alliteration (i.e., all words in the title start with the same letter)?
 
+```{r}
+NAME_BASICS %>% filter(str_detect(primaryName, "Tom|Thomas|Thom|Tomas")) %>% summarize(n())
+
+NAME_BASICS %>% filter(str_detect(primaryName, regex("^([A-Za-z]+)\\s\\1", ignore_case = TRUE)))
+```
 
 
 
