@@ -55,8 +55,8 @@ summary(TITLE_PRINCIPALS$category)
 summary(TITLE_BASICS$titleType)
 
 ggplot(data = NAME_BASICS) + 
-  geom_density(aes(x = birthYear), bins = 700, fill = "plum", color = "darkblue", alpha = .7) + coord_cartesian(xlim = c(1800, 2026)) + theme_light() +
-  geom_density(aes(x = deathYear), bins = 700, fill = "lightblue", color = "darkblue", alpha = .7) +
+  geom_density(aes(x = birthYear), fill = "plum", color = "darkblue", alpha = .7) + coord_cartesian(xlim = c(1800, 2026)) + theme_light() +
+  geom_density(aes(x = deathYear), fill = "lightblue", color = "darkblue", alpha = .7) +
  annotate("text", x = 1899, y = .02, label = "Death dates shows higher peak, steeper distribution than birth dates") +
   labs(x = "Date", y = "Density", title = "Distribution of Birth and Death Years") +
   annotate("point", x = 1845, y = .015, fill = "plum", color = "darkblue", shape = 21, size = 3) +
@@ -114,7 +114,7 @@ TITLE_BASICS <- TITLE_BASICS %>% mutate(two_decades =
 
 #use two_decade and title type to explore run time
 
-TITLE_BASICS %>% group_by(two_decades, titleType) %>% summarize(mean_runtime = mean(as.numeric(runtimeMinutes), na.rm = TRUE))
+TITLE_BASICS %>% summarize(mean_runtime = mean(as.numeric(runtimeMinutes), na.rm = TRUE), .by = c(two_decades, titleType))
 
 TITLE_BASICS %>% summarize(sum(primaryTitle != originalTitle))
 
@@ -174,12 +174,17 @@ ggplot() +
     
       
 * Find all the actors with first names "Tom", "Thomas", "Thom" or "Tomas". How many are there?
+6084
 * How many titles use alliteration (i.e., all words in the title start with the same letter)?
 
 ```{r}
 NAME_BASICS %>% filter(str_detect(primaryName, "Tom|Thomas|Thom|Tomas")) %>% summarize(n())
 
-NAME_BASICS %>% filter(str_detect(primaryName, regex("^([A-Za-z]+)\\s\\1", ignore_case = TRUE)))
+#pattern of letter A-z (), rest of word 0 or more times
+#space one or more, detect pattern, rest of word 0 or more times - () must happen at least 1 time
+#find end 
+
+TITLE_BASICS %>% filter(str_detect(primaryTitle, regex("^([A-Za-z])\\w*(\\s+\\1\\w*)+$", ignore_case = TRUE)))
 ```
 
 
