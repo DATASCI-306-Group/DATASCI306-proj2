@@ -300,18 +300,21 @@ cor(ratings_by_year$startYear, ratings_by_year$meanNumVotes, use = "complete.obs
 # Group by individual people, find the top ten people based on the median rating of the titles they appear in
 # Find the proportions of genres for the the titles that include the top 10 rated principals
 # Graph ratings against years
+```
+```{R}
 
 PRINCIPALS_RATINGS <- TITLE_PRINCIPALS |>
-  left_join(TITLE_RATINGS, by = "tconst") |>
-  left_join(NAME_BASICS |> select(nconst, primaryName), by = "nconst")
+  left_join(TITLE_RATINGS, by = "tconst") 
 
 # Top 10 people by median rating
 top10 <- PRINCIPALS_RATINGS |>
-  group_by(nconst, primaryName) |>
+  group_by(nconst) |>
   summarise(median_rating = median(averageRating, na.rm = TRUE), .groups = "drop") |>
   slice_max(median_rating, n = 10)
 
-top10
+top10 |> left_join(NAME_BASICS |> select(nconst, primaryName), by = "nconst")
+```
+```{R}
 
 # Genre proportions for top 10 principals
 TITLE_BASICS_GENRES |>
@@ -380,37 +383,54 @@ After running a profile on these functions from part IV, we found that it had a 
 * Select a previous computation that could be improved using parallelization and implement a parallelization solution. Using `system.time` show that parallelization improves performance.
 
 ```{R}
-joined <- TITLE_PRINCIPALS |>
-  left_join(TITLE_RATINGS, by = "tconst")
-```
-```{R}
-system.time({
-  serial_medians <- joined |>
-    group_by(nconst) |>
-    summarise(median_rating = median(averageRating, na.rm = TRUE))
-})
-
-```
-
-```{R}
 library(data.table)
-dt <- as.data.table(joined)
-chunks <- split(dt, f = sort(rep(1:4, length.out = nrow(dt))))
-safe_median_dt <- function(chunk) {
+library(future.apply)
+
+dt <- as.data.table(PRINCIPALS_RATINGS)
+system.time({
+  top10 <- PRINCIPALS_RATINGS |>
+  group_by(nconst) |>
+  summarise(median_rating = median(averageRating, na.rm = TRUE), .groups = "drop") |>
+  slice_max(median_rating, n = 10)
+})
+idx <- split(seq_len(nrow(dt)), sort(rep(1:4, length.out = nrow(dt))))
+chunks <- lapply(idx, function(i) dt[i])
+chunk_medians <- function(chunk) {
   chunk[, .(median_rating = median(averageRating, na.rm = TRUE)), by = nconst]
 }
-
 system.time({
-  results_list <- future_lapply(chunks, safe_median_dt)
+  results_list <- future_lapply(chunks, chunk_medians)
   parallel_medians <- rbindlist(results_list)
 })
 
-
 ```
+Parallelization significantly improved the run time for the problem IV function of calculating medians. 
 
-* One task we performed involved counting items in strings separated by commas. Propose two different functions that could perform this taks. Compare them using bench marking. Which version would you recommend?
-
-
+* One task we performed involved counting items in strings separated by commas. Propose two different functions that could perform this task. Compare them using bench marking. Which version would you recommend?
+The first method includes using the str_count function on a fully vectorized input. 
+```{R}
+count_items_stringr <- function(x) {
+  ifelse(is.na(x) | x == "", 0, str_count(x, ",") + 1)
+}
+```
+Another way is to use loops to continually count each comma delimiter.
+```{r}
+count_items_loop <- function(x) {
+  out <- integer(length(x))
+  for (i in seq_along(x)) {
+    if (is.na(x[i]) || x[i] == "") {
+      out[i] <- 0
+    } else {
+      out[i] <- length(strsplit(x[i], ",")[[1]])
+    }
+  }
+  out
+}
+test <- paste(rep("a", 1000), collapse = ",")
+bm <- bench::mark(count_items_stringr(test), count_items_loop(test))
+bm
+```
+I would recommend the vectorized version as it is much more efficient in counting the number of items. 
 ## Part VI: Shiny Applications
 
 ### Application 1
