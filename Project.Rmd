@@ -306,6 +306,7 @@ cor(ratings_by_year$startYear, ratings_by_year$meanNumVotes, use = "complete.obs
 # Find the proportions of genres for the the titles that include the top 10 rated principals
 # Graph ratings against years
 ```
+
 ```{R}
 
 PRINCIPALS_RATINGS <- TITLE_PRINCIPALS |>
@@ -321,7 +322,7 @@ top10 <- PRINCIPALS_RATINGS |>
 top10 |> left_join(NAME_BASICS |> select(nconst, primaryName), by = "nconst")
 ```
 
-```{R, eval = FALSE}
+```{R}
 
 # Genre proportions for top 10 principals
 TITLE_BASICS_GENRES |>
@@ -333,14 +334,13 @@ TITLE_BASICS_GENRES |>
   arrange(desc(prop))
 
 # Ratings vs years
-PRINCIPALS_RATINGS |>
-  left_join(TITLE_BASICS |> select(tconst, startYear), by = "tconst") |>
-  filter(!is.na(startYear)) 
-  ggplot(aes(x = startYear, y = averageRating)) +
-  geom_smooth() +
-  theme_light() +
+graph_princ_ratings <- PRINCIPALS_RATINGS |>
+  left_join(TITLE_BASICS |> select(tconst, startYear), by = "tconst") |> select(startYear.x, averageRating)
+
+  ggplot(data = graph_princ_ratings, aes(x = startYear.x, y = averageRating)) +
+  geom_smooth(method = "lm") + theme_light() +
   labs(x = "Start Year", y = "Average Rating",
-       title = "Ratings Over Time")
+     title = "Ratings Over Time")
 
 
 # Create a table with one row for each person in the `name_basics` table and title they are known for. Join this to the ratings table to get the ratings of the "known for" films. Find the person (or people) who have the highest median known for rating
@@ -444,8 +444,8 @@ I would recommend the vectorized version as it is much more efficient in countin
 ### Application 1
 
 Using results from the previous section, create a shiny application that allows users to interact with the with the IMDb data. The application should use both interactive graphs and at least 3 widgets.
-```{r, code=readLines("app_1.R"), eval=FALSE}
-```
+#```{r, code=readLines("data/app_1.R"), eval=FALSE}
+#```
 
 
 
@@ -465,4 +465,7 @@ Create an app to allow users to play [Six Degrees of Kevin Bacon](https://en.wik
 
 Create a Shiny application where a person can type the primary title of movie or TV show. Then have app show all the people who had a role in the show. Let the user select a person in that cast and show all other people who have been in a title with that person. Repeat up to 6 times. If "Kevin Bacon" (`nconst == 'nm0000102'`) ever appears in the list, let the player know they have won! If they click more than 6 times, let them know they have lost.
 
+```{r, code=readLines("bacon_app.R"), eval=FALSE}
+
+```
 
