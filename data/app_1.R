@@ -30,7 +30,7 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput("category", "Job Category:", choices = unique(joined_top10$category)),
-      sliderInput("year", "Start Year:", min = 2000, max = 2025, value = c(2000, 2025)),
+      sliderInput("year", "Start Year:", min = 1900, max = 2025, value = c(1950, 2025)),
       checkboxGroupInput("genres", "Genres: ", choices = top10_genres, selected = top10_genres)
       
     ),
@@ -49,14 +49,19 @@ server <- function(input, output) {
       filter(category == input$category,
             !is.na(startYear),
             startYear >= input$year[1],
-            startYear <= input$year[2])
+            startYear <= input$year[2] )|>
+            filter(
+              map_lgl(genres, ~ any(str_split(.x, ",")[[1]] %in% input$genres))
+            )
+            
+    
   })
   
   output$ratingPlot <- renderPlot({
     ggplot(
       filtered(), aes(startYear, averageRating, color = averageRating)) +
       geom_point(alpha = 0.4, size = 2) +
-      geom_smooth(se = FALSE, color = "black", linewidth = 1) +
+      geom_smooth(se = FALSE, color = "purple", linewidth = 1) +
       scale_color_viridis_c(option = "plasma") +
       labs(
         title = "Ratings Over Time",
@@ -67,12 +72,18 @@ server <- function(input, output) {
   })
   output$genrePlot <- renderPlot({
     ggplot(filtered(), aes(category)) +
-      geom_bar()
+      geom_bar() +
+      labs(
+        title = "Number of Titles by Job Category",
+        x = "Category",
+        y = "Count"
+      ) 
   })
   
   
   output$click_info <- renderPrint({
-    input$plot_click
+    req(input$plot_click)
+    nearPoints(filtered(), input$plot_click, maxpoints = 1)
   })
 }
 
