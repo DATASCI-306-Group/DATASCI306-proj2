@@ -75,13 +75,15 @@ ggplot(data = TITLE_BASICS) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
   annotate("text", x = 5.5, y = 25000, label = "tv episodes most common") +
 labs(title = "Counts of Each Title") +
-  annotate("curve", x = 5.6, y = 27000, xend = 3.8, yend = 29200, curvature = .3, arrow = arrow(length = unit(.5, "cm")))
+  annotate("curve", x = 5.6, y = 27000, xend = 3.8, yend = 29200, curvature = .3, arrow = arrow(length = unit(.5, "cm"))) 
 
 ggplot(data = TITLE_PRINCIPALS) +
   geom_bar(aes(x = as.factor(category), y = after_stat(prop), group = 1,
                fill = after_stat(as.factor(x))), show.legend = FALSE) +   
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
-  labs(x = "Category", y = "Proportion", title = "Proportion of Job Categories from IMDb")
+  labs(x = "Category", y = "Proportion", title = "Proportion of Job Categories from IMDb") 
+
+
 
 TITLE_RATINGS <- TITLE_RATINGS %>% mutate(rating_buckets = case_when(
   averageRating < 3 ~ "Awful",
@@ -106,7 +108,7 @@ ggplot(data = TITLE_RATINGS) +
   * How many titles are known for name that is different than the original release name? 7244 titles have a primary title and original title that do not match
   * Graph the conditional distributions of release year based on the previous results. Comment on any trends you observe.
   
-The titles that are known for a name that is the same as the original release name have higher density in more recent years. The titles that are knwown for a name that is different than the original release name have higher density in years between 1950 - 2000
+The titles that are known for a name that is the same as the original release name have higher density in more recent years. The titles that are known for a name that is different than the original release name have higher density in years between 1950 - 2000.
   
 ```{r}
 #create groups for start year
@@ -246,13 +248,24 @@ GENRE_COR |>
 * Join the table with one title-genre per row from the previous section with the ratings table.
   * What is the highest rated genre? What is the lowest rated genre?
   * Using stacked bar charts, investigate the proportions of different genres over time. Are any incresing or decreasing? Use factor functions to help make the plots easier to read.
+  
+  Short films and documentaries decreased in proportion over time. Dramas and comedies increased in frequency over time.
+  
+  
 * Join the `title_basics` with the ratings table. Have the number of ratings changed over time (based on release year)? Display graphically but also answer with numerical results.
+
+Number of ratings saw a peak around 1940 and some increases centered around 2000.
+
 * Join the names with the ratings and the principals table. 
   * Group by individual people, find the top ten people based on the median rating of the titles they appear in.
   * Find the proportions of genres for the the titles that include the top 10 rated principals.
   * Graph ratings against years. What trends do you see?
+Ratings have increased over time. The best fit line is linear. 
+  
 * Create a table with one row for each person in the `name_basics` table and title they are known for. Join this to the ratings table to get the ratings of the "known for" films. Find the person (or people) who have the highest median known for rating.
 * 
+There are many people with a median rating of 10. Some examples are James Kemp,	Giovanni Mammolotti, and Tess Newheart 
+
 
 ```{r}
 # Join the table with one title-genre per row from the previous section with the ratings table
